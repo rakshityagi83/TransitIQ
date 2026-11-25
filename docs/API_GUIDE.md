@@ -183,3 +183,78 @@ Routes: 102DOWN and 102ADOWN
 ETM dataset access remains pending.
 
 All timings are scheduled, not live predictions.
+
+
+## 10. Direct and Transfer Journey Support
+
+The journey planner now supports both direct journeys
+and journeys involving one bus transfer.
+
+The existing POST /api/journey/plan endpoint is unchanged.
+
+Additional journey response fields:
+
+- journey_type: direct or transfer
+- transfers: 0 or 1
+- transfer_stop: interchange stop for transfer journeys
+- transfer_wait_minutes
+- legs: array of individual bus journey segments
+- effective_crowding
+- within_time_budget
+
+Each leg includes its own route name, departure time,
+arrival time, crowding index, confidence, stops and geometry.
+
+Render each transfer leg using a different map colour.
+
+The least_crowded recommendation may be null when no
+sufficiently supported prediction is available.
+
+## 11. Transfer Demo Journey
+
+Origin: Rohini Sec 22 Terminal
+Origin ID: 1
+
+Destination: Kashmere Gate City Bus Terminal
+Destination ID: 1025
+
+Departure: 26 November 2026, 08:00 IST
+
+## 12. Analytics Dashboard
+
+GET /api/analytics/summary
+
+Response sections:
+
+- dataset
+- model
+- validation
+- capabilities
+- limitations
+
+The validation object includes:
+
+- model
+- baseline
+- mae_improvement_percent
+- prediction_coverage_percent
+- frequency_coverage_percent
+- peak_analysis
+- hourly_demand
+- day_type_demand
+- crowding_distribution
+- confidence_distribution
+
+Use the actual API response to generate charts.
+Do not hardcode analytics statistics.
+
+## 13. Backend Testing
+
+From the backend directory with the virtual environment
+activated, run:
+
+python -m pytest tests -v --tb=short
+
+Current verified result: 18 passed.
+
+Processed datasets must exist before running integration tests.
