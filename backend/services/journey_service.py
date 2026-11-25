@@ -8,61 +8,19 @@ from services.routing_service import (
 )
 
 from services.crowding_service import get_crowding
+from services.ranking_service import rank_journeys
+
+from services.transfer_service import (
+    find_transfer_journeys
+)
+
+from services.transfer_enrichment import (
+    enrich_transfer_journeys,
+    attach_transfer_geometry
+)
 
 
 IST = ZoneInfo("Asia/Kolkata")
-
-
-def effective_crowding(journey):
-
-    index = journey.get("crowding_index")
-    confidence = journey.get("confidence")
-
-    # Missing data is not zero crowding.
-    if index is None:
-        return 100.0
-
-    # Conservative uncertainty adjustment.
-    penalties = {
-        "high": 0,
-        "medium": 10,
-        "low": 25,
-        "unavailable": 35
-    }
-
-    return min(
-        100.0,
-        float(index)
-        + penalties.get(confidence, 25)
-    )
-
-
-def calculate_score(
-    journey,
-    max_duration,
-    comfort_weight
-):
-
-    time_cost = (
-        journey["duration_minutes"]
-        / max(max_duration, 1)
-    )
-
-    crowding_cost = (
-        effective_crowding(journey) / 100
-    )
-
-    transfer_cost = (
-        journey["transfers"] * 0.05
-    )
-
-    score = (
-        (1 - comfort_weight) * time_cost
-        + comfort_weight * crowding_cost
-        + transfer_cost
-    )
-
-    return round(score * 100, 3)
 
 
 def plan_journey(
@@ -80,7 +38,7 @@ def plan_journey(
             "Comfort weight must be between 0 and 1."
         )
 
-    limit = max(1, min(int(limit), 10))
+    limit = max(3, min(int(limit), 10))
 
     requested_time = datetime.fromisoformat(
         departure_time
@@ -101,9 +59,9 @@ def plan_journey(
         "%H:%M:%S"
     )
 
-    # 1. Find scheduled journey candidates.
+    # 1. Search direct journeys.
 
-    candidates = find_direct_journeys(
+    direct_journeys = find_direct_journeys(
         origin_stop_id,
         destination_stop_id,
         time_string,
@@ -111,24 +69,13 @@ def plan_journey(
         max_wait_minutes=120
     )
 
-    if not candidates:
-
-        return {
-            "status": "no_journeys",
-            "message": (
-                "No direct scheduled journeys "
-                "found within the next two hours."
-            ),
-            "journeys": [],
-            "recommendations": {}
-        }
-
-    # 2. Attach crowding predictions.
-    # Cache repeated route-hour combinations.
-
     prediction_cache = {}
 
-    for journey in candidates:
+    for journey in direct_journeys:
+
+        journey["journey_type"] = "direct"
+        journey["transfers"] = 0
+        journey["transfer_wait_minutes"] = 0
 
         cache_key = (
             journey["route_key"],
@@ -143,163 +90,114 @@ def plan_journey(
                 service_date
             )
 
-        prediction = prediction_cache[cache_key]
-
-        journey.update(prediction)
-
-        journey["effective_crowding"] = (
-            effective_crowding(journey)
+        journey.update(
+            prediction_cache[cache_key]
         )
 
-        journey["recommendations"] = []
+    # 2. Search one-transfer journeys.
 
-    # 3. Calculate ranking scores.
-
-    max_duration = max(
-        j["duration_minutes"]
-        for j in candidates
+    transfer_journeys = find_transfer_journeys(
+        origin_stop_id,
+        destination_stop_id,
+        time_string,
+        limit=30,
+        max_wait_minutes=120,
+        min_transfer_minutes=5,
+        max_transfer_minutes=45
     )
 
-    for journey in candidates:
+    transfer_journeys = enrich_transfer_journeys(
+        transfer_journeys,
+        service_date
+    )
 
-        journey["ranking_score"] = calculate_score(
-            journey,
-            max_duration,
-            comfort_weight
-        )
+    # 3. Combine all journey candidates.
 
-    # 4. Find fastest journey.
+    candidates = (
+        direct_journeys + transfer_journeys
+    )
 
-    fastest = min(
+    if not candidates:
+
+        return {
+            "status": "no_journeys",
+            "message": (
+                "No direct or one-transfer scheduled "
+                "journeys found within the search window."
+            ),
+            "journeys": [],
+            "recommendations": {},
+            "total_candidates": 0,
+            "unique_routes": 0,
+            "returned_unique_routes": 0
+        }
+
+    # 4. Rank combined journey candidates.
+
+    selected, recommendations = rank_journeys(
         candidates,
-        key=lambda j: j["duration_minutes"]
+        comfort_weight=comfort_weight,
+        limit=limit
     )
 
-    fastest["recommendations"].append("fastest")
-
-    # 5. Find least crowded reliable journey.
-
-    known_crowding = [
-        j for j in candidates
-        if j.get("crowding_index") is not None
-        and j.get("confidence") in (
-            "high", "medium"
-        )
-    ]
-
-    comfortable = None
-
-    if known_crowding:
-
-        comfortable = min(
-            known_crowding,
-            key=lambda j: (
-                effective_crowding(j),
-                j["duration_minutes"]
-            )
-        )
-
-        comfortable["recommendations"].append(
-            "least_crowded"
-        )
-
-    # 6. Find balanced journey.
-
-    balanced = min(
-        candidates,
-        key=lambda j: (
-            j["ranking_score"],
-            j["duration_minutes"]
-        )
-    )
-
-    balanced["recommendations"].append("balanced")
-
-    # 7. Prioritise recommended journeys.
-
-    selected = []
-    selected_ids = set()
-
-    def add_journey(journey):
-
-        if journey is None:
-            return
-
-        trip_id = journey["trip_id"]
-
-        if trip_id not in selected_ids:
-            selected.append(journey)
-            selected_ids.add(trip_id)
-
-    add_journey(balanced)
-    add_journey(fastest)
-    add_journey(comfortable)
-
-    ranked = sorted(
-        candidates,
-        key=lambda j: j["ranking_score"]
-    )
-
-    # Prefer different routes where possible.
-
-    used_routes = {
-        j["route_key"] for j in selected
-    }
-
-    for journey in ranked:
-
-        if len(selected) >= max(limit, 3):
-            break
-
-        if journey["route_key"] not in used_routes:
-
-            add_journey(journey)
-
-            used_routes.add(
-                journey["route_key"]
-            )
-
-    # Fill remaining slots with other departures.
-
-    for journey in ranked:
-
-        if len(selected) >= max(limit, 3):
-            break
-
-        add_journey(journey)
-
-    # 8. Attach real stop coordinates and sequences.
+    # 5. Generate geometry for selected journeys.
 
     for journey in selected:
 
-        stops = get_journey_stops(
-            journey["trip_id"],
-            journey["boarding_sequence"],
-            journey["alighting_sequence"]
-        )
+        if journey["transfers"] == 1:
 
-        journey["stops"] = stops
+            attach_transfer_geometry(journey)
 
-        journey["geometry"] = [
-            [
-                stop["latitude"],
-                stop["longitude"]
+        else:
+
+            stops = get_journey_stops(
+                journey["trip_id"],
+                journey["boarding_sequence"],
+                journey["alighting_sequence"]
+            )
+
+            journey["stops"] = stops
+
+            journey["geometry"] = [
+                [
+                    stop["latitude"],
+                    stop["longitude"]
+                ]
+                for stop in stops
+                if stop["latitude"] is not None
+                and stop["longitude"] is not None
             ]
 
-            for stop in stops
+            journey["geometry_source"] = (
+                "GTFS stop coordinates"
+            )
 
-            if stop["latitude"] is not None
-            and stop["longitude"] is not None
-        ]
+            journey["legs"] = [{
+                key: journey.get(key)
+                for key in [
+                    "trip_id",
+                    "route_id",
+                    "route_name",
+                    "route_key",
+                    "boarding_stop",
+                    "alighting_stop",
+                    "boarding_sequence",
+                    "alighting_sequence",
+                    "departure_time",
+                    "arrival_time",
+                    "travel_minutes",
+                    "crowding_index",
+                    "crowding_level",
+                    "confidence",
+                    "prediction_available",
+                    "stops",
+                    "geometry"
+                ]
+            }]
 
-        journey["geometry_source"] = (
-            "GTFS stop coordinates"
-        )
-
-    # 9. Return complete journey results.
+    # 6. Return unified journey response.
 
     return {
-
         "status": "success",
 
         "requested_departure": (
@@ -310,25 +208,23 @@ def plan_journey(
 
         "total_candidates": len(candidates),
 
+        "direct_candidates": len(direct_journeys),
+
+        "transfer_candidates": len(transfer_journeys),
+
         "unique_routes": len({
             j["route_key"]
             for j in candidates
         }),
 
+        "returned_unique_routes": len({
+            j["route_key"]
+            for j in selected
+        }),
+
         "journeys": selected,
 
-        "recommendations": {
-
-            "fastest": fastest["trip_id"],
-
-            "least_crowded": (
-                comfortable["trip_id"]
-                if comfortable
-                else None
-            ),
-
-            "balanced": balanced["trip_id"]
-        },
+        "recommendations": recommendations,
 
         "metadata": {
 
@@ -343,6 +239,21 @@ def plan_journey(
 
             "etm_available": False,
 
-            "routing_scope": "Direct bus journeys"
+            "routing_scope": (
+                "Direct and one-transfer bus journeys"
+            ),
+
+            "maximum_transfers": 1,
+
+            "minimum_transfer_minutes": 5,
+
+            "ranking_method": (
+                "Confidence-aware multi-objective "
+                "optimisation with journey-time budget"
+            ),
+
+            "transfer_crowding_method": (
+                "Travel-time-weighted leg estimates"
+            )
         }
     }
