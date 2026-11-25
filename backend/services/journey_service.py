@@ -9,60 +9,10 @@ from services.routing_service import (
 
 from services.crowding_service import get_crowding
 
+from services.ranking_service import rank_journeys
+
 
 IST = ZoneInfo("Asia/Kolkata")
-
-
-def effective_crowding(journey):
-
-    index = journey.get("crowding_index")
-    confidence = journey.get("confidence")
-
-    # Missing data is not zero crowding.
-    if index is None:
-        return 100.0
-
-    # Conservative uncertainty adjustment.
-    penalties = {
-        "high": 0,
-        "medium": 10,
-        "low": 25,
-        "unavailable": 35
-    }
-
-    return min(
-        100.0,
-        float(index)
-        + penalties.get(confidence, 25)
-    )
-
-
-def calculate_score(
-    journey,
-    max_duration,
-    comfort_weight
-):
-
-    time_cost = (
-        journey["duration_minutes"]
-        / max(max_duration, 1)
-    )
-
-    crowding_cost = (
-        effective_crowding(journey) / 100
-    )
-
-    transfer_cost = (
-        journey["transfers"] * 0.05
-    )
-
-    score = (
-        (1 - comfort_weight) * time_cost
-        + comfort_weight * crowding_cost
-        + transfer_cost
-    )
-
-    return round(score * 100, 3)
 
 
 def plan_journey(
@@ -80,17 +30,20 @@ def plan_journey(
             "Comfort weight must be between 0 and 1."
         )
 
-    limit = max(1, min(int(limit), 10))
+    limit = max(3, min(int(limit), 10))
 
     requested_time = datetime.fromisoformat(
         departure_time
     )
 
     if requested_time.tzinfo is None:
+
         requested_time = requested_time.replace(
             tzinfo=IST
         )
+
     else:
+
         requested_time = requested_time.astimezone(
             IST
         )
@@ -123,8 +76,7 @@ def plan_journey(
             "recommendations": {}
         }
 
-    # 2. Attach crowding predictions.
-    # Cache repeated route-hour combinations.
+    # 2. Attach historical crowding predictions.
 
     prediction_cache = {}
 
@@ -143,132 +95,21 @@ def plan_journey(
                 service_date
             )
 
-        prediction = prediction_cache[cache_key]
-
-        journey.update(prediction)
-
-        journey["effective_crowding"] = (
-            effective_crowding(journey)
+        journey.update(
+            prediction_cache[cache_key]
         )
 
-        journey["recommendations"] = []
+    # 3. Rank journeys using the dedicated
+    # confidence-aware optimisation engine.
 
-    # 3. Calculate ranking scores.
-
-    max_duration = max(
-        j["duration_minutes"]
-        for j in candidates
-    )
-
-    for journey in candidates:
-
-        journey["ranking_score"] = calculate_score(
-            journey,
-            max_duration,
-            comfort_weight
-        )
-
-    # 4. Find fastest journey.
-
-    fastest = min(
+    selected, recommendations = rank_journeys(
         candidates,
-        key=lambda j: j["duration_minutes"]
+        comfort_weight=comfort_weight,
+        limit=limit
     )
 
-    fastest["recommendations"].append("fastest")
-
-    # 5. Find least crowded reliable journey.
-
-    known_crowding = [
-        j for j in candidates
-        if j.get("crowding_index") is not None
-        and j.get("confidence") in (
-            "high", "medium"
-        )
-    ]
-
-    comfortable = None
-
-    if known_crowding:
-
-        comfortable = min(
-            known_crowding,
-            key=lambda j: (
-                effective_crowding(j),
-                j["duration_minutes"]
-            )
-        )
-
-        comfortable["recommendations"].append(
-            "least_crowded"
-        )
-
-    # 6. Find balanced journey.
-
-    balanced = min(
-        candidates,
-        key=lambda j: (
-            j["ranking_score"],
-            j["duration_minutes"]
-        )
-    )
-
-    balanced["recommendations"].append("balanced")
-
-    # 7. Prioritise recommended journeys.
-
-    selected = []
-    selected_ids = set()
-
-    def add_journey(journey):
-
-        if journey is None:
-            return
-
-        trip_id = journey["trip_id"]
-
-        if trip_id not in selected_ids:
-            selected.append(journey)
-            selected_ids.add(trip_id)
-
-    add_journey(balanced)
-    add_journey(fastest)
-    add_journey(comfortable)
-
-    ranked = sorted(
-        candidates,
-        key=lambda j: j["ranking_score"]
-    )
-
-    # Prefer different routes where possible.
-
-    used_routes = {
-        j["route_key"] for j in selected
-    }
-
-    for journey in ranked:
-
-        if len(selected) >= max(limit, 3):
-            break
-
-        if journey["route_key"] not in used_routes:
-
-            add_journey(journey)
-
-            used_routes.add(
-                journey["route_key"]
-            )
-
-    # Fill remaining slots with other departures.
-
-    for journey in ranked:
-
-        if len(selected) >= max(limit, 3):
-            break
-
-        add_journey(journey)
-
-    # 8. Attach real stop coordinates and sequences.
+    # 4. Attach intermediate stops
+    # and geographical coordinates.
 
     for journey in selected:
 
@@ -296,7 +137,7 @@ def plan_journey(
             "GTFS stop coordinates"
         )
 
-    # 9. Return complete journey results.
+    # 5. Return complete results.
 
     return {
 
@@ -315,20 +156,14 @@ def plan_journey(
             for j in candidates
         }),
 
+        "returned_unique_routes": len({
+            j["route_key"]
+            for j in selected
+        }),
+
         "journeys": selected,
 
-        "recommendations": {
-
-            "fastest": fastest["trip_id"],
-
-            "least_crowded": (
-                comfortable["trip_id"]
-                if comfortable
-                else None
-            ),
-
-            "balanced": balanced["trip_id"]
-        },
+        "recommendations": recommendations,
 
         "metadata": {
 
@@ -343,6 +178,11 @@ def plan_journey(
 
             "etm_available": False,
 
-            "routing_scope": "Direct bus journeys"
+            "routing_scope": "Direct bus journeys",
+
+            "ranking_method": (
+                "Confidence-aware multi-objective "
+                "optimisation with journey-time budget"
+            )
         }
     }
