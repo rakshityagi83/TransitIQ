@@ -307,15 +307,51 @@ def analytics():
 
             model = json.load(file)
 
+        validation_path = (
+            DATA / "validation_report.json"
+        )
+
+        validation = None
+
+        if validation_path.exists():
+
+            with open(
+                validation_path,
+                encoding="utf-8"
+            ) as file:
+
+                validation = json.load(file)
+
         return {
             "dataset": dataset,
             "model": model,
+            "validation": validation,
+
+            "capabilities": {
+                "direct_routing": True,
+                "transfer_routing": True,
+                "maximum_transfers": 1,
+                "crowding_prediction": True,
+                "comfort_based_ranking": True,
+                "historical_profiles": True,
+                "validation_available": (
+                    validation is not None
+                ),
+                "live_tracking": False,
+                "etm_integrated": False
+            },
+
             "limitations": [
-                "E-ticketing represents partial passenger demand.",
+                "ONDC e-ticketing represents partial passenger demand.",
                 "ETM data has not yet been integrated.",
-                "Crowding scores are relative indices.",
+                "Crowding scores are relative indices, not occupancy percentages.",
+                "Confidence reflects historical data support, not calibrated probability.",
                 "Journey timings use static GTFS schedules.",
-                "Current routing supports direct bus journeys."
+                "Routing supports direct and one-transfer bus journeys.",
+                "Transfers require a shared stop ID.",
+                "Map geometry uses GTFS stop coordinates.",
+                "Missing frequency data results in unknown crowdedness.",
+                "Model accuracy measures recorded passenger demand, not actual bus occupancy."
             ]
         }
 
