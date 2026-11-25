@@ -1,5 +1,12 @@
 import { useEffect, useState } from 'react'
 import {
+  TrendingDown,
+  Activity,
+  Database,
+  ChartNoAxesCombined,
+  ShieldCheck
+} from 'lucide-react'
+import {
   Bar,
   BarChart,
   CartesianGrid,
@@ -44,21 +51,67 @@ function entries(record) {
   }))
 }
 
-function Stat({ label, value, hint }) {
+function Stat({ label, value, hint, featured = false }) {
   return (
-    <article className="rounded-2xl border border-slate-700/80 bg-[#111c2e] p-4 shadow-[0_8px_24px_rgba(0,0,0,0.18)]">
-      <h3 className="text-xs tracking-wide text-slate-400 uppercase">{label}</h3>
-      <p className="mt-2 text-2xl font-semibold text-white">{value}</p>
-      {hint ? <p className="mt-1 text-xs leading-5 text-slate-400">{hint}</p> : null}
+    <article
+      className={`relative overflow-hidden rounded-2xl border p-5 transition-colors ${
+        featured
+          ? 'border-teal-400/30 bg-teal-400/5'
+          : 'border-slate-800 bg-[#111c2e] hover:border-slate-600'
+      }`}
+    >
+      <div className="flex items-center justify-between gap-2">
+
+        <h3 className="text-xs font-medium uppercase tracking-wider text-slate-400">
+          {label}
+        </h3>
+
+        {featured && (
+          <TrendingDown className="size-5 text-teal-400" />
+        )}
+
+      </div>
+
+      <p className={`mt-3 text-3xl font-bold tracking-tight ${
+        featured ? 'text-teal-300' : 'text-white'
+      }`}>
+        {value}
+      </p>
+
+      {hint && (
+        <p className="mt-2 text-xs leading-relaxed text-slate-400">
+          {hint}
+        </p>
+      )}
+
     </article>
   )
 }
 
 function ChartCard({ title, children, empty }) {
   return (
-    <section className="rounded-2xl border border-slate-700/80 bg-[#111c2e] p-4">
-      <h3 className="mb-3 text-sm font-medium text-slate-100">{title}</h3>
-      {empty ? <p className="text-sm text-slate-400">{empty}</p> : <div className="h-64">{children}</div>}
+    <section className="min-w-0 rounded-2xl border border-slate-800 bg-[#111c2e] p-5 sm:p-6">
+
+      <div className="mb-5 flex items-center gap-2">
+
+        <ChartNoAxesCombined className="size-5 text-teal-400" />
+
+        <h3 className="text-base font-semibold text-white">
+          {title}
+        </h3>
+
+      </div>
+
+      {empty ? (
+        <p className="text-sm text-slate-400">
+          {empty}
+        </p>
+      ) : (
+        <div className="h-72">
+          {children}
+        </div>
+      )}
+
     </section>
   )
 }
@@ -134,11 +187,118 @@ export default function AnalyticsView() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-white">Network Analytics</h2>
+      <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-teal-400">
+  Data intelligence
+</p>
+
+<h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+  Network Analytics
+</h2>
         <p className="mt-1 text-sm text-slate-400">
-          Figures come from the analytics summary. Crowdedness remains a relative index, not measured occupancy.
+        Explore historical passenger demand, network patterns and the performance of our crowdedness estimation model.
         </p>
       </div>
+
+
+      {validation && (
+  <section className="overflow-hidden rounded-2xl border border-teal-400/20 bg-[#111c2e] p-6 sm:p-8">
+
+    <div className="grid items-center gap-8 lg:grid-cols-2">
+
+      <div>
+
+        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-teal-400/20 bg-teal-400/10 px-3 py-1 text-xs font-medium text-teal-300">
+
+          <Activity className="size-3.5" />
+
+          Historical model evaluation
+
+        </div>
+
+        <h3 className="text-2xl font-bold text-white">
+          Data-driven travel intelligence.
+        </h3>
+
+        <p className="mt-3 max-w-xl text-sm leading-relaxed text-slate-400">
+          TransitIQ learns route-specific demand patterns
+          using historical ticketing records, time of day
+          and day type.
+        </p>
+
+        <div className="mt-5 flex items-start gap-2 text-xs leading-relaxed text-slate-400">
+
+          <ShieldCheck className="mt-0.5 size-4 shrink-0 text-teal-400" />
+
+          Evaluation uses held-out historical dates.
+          These metrics measure recorded passenger demand,
+          not actual onboard occupancy.
+
+        </div>
+
+      </div>
+
+      <div className="rounded-2xl border border-teal-400/15 bg-[#0b1424] p-6">
+
+        <p className="text-sm text-slate-400">
+          MAE reduction against baseline
+        </p>
+
+        <p className="mt-2 text-5xl font-bold tracking-tight text-teal-300">
+          {formatPercent(
+            validation.mae_improvement_percent
+          )}
+        </p>
+
+        <div className="mt-5 space-y-4">
+
+          <div>
+            <div className="mb-2 flex justify-between text-xs text-slate-400">
+              <span>Baseline MAE</span>
+              <span>{formatDecimal(baseline?.mae, 4)}</span>
+            </div>
+
+            <div className="h-2 overflow-hidden rounded-full bg-slate-800">
+              <div className="h-full w-full rounded-full bg-slate-500" />
+            </div>
+          </div>
+
+          <div>
+            <div className="mb-2 flex justify-between text-xs text-teal-300">
+              <span>TransitIQ MAE</span>
+              <span>{formatDecimal(metrics.mae, 4)}</span>
+            </div>
+
+            <div className="h-2 overflow-hidden rounded-full bg-slate-800">
+
+              <div
+                className="h-full rounded-full bg-teal-400"
+                style={{
+                  width: `${
+                    baseline?.mae > 0
+                      ? Math.min(
+                          100,
+                          Math.max(
+                            0,
+                            metrics.mae / baseline.mae * 100
+                          )
+                        )
+                      : 0
+                  }%`
+                }}
+              />
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+)}
 
       {!validation ? (
         <p className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-100">
@@ -182,10 +342,11 @@ export default function AnalyticsView() {
         <Stat label="Model RMSE" value={formatDecimal(metrics.rmse, 4)} />
         <Stat label="Model WAPE" value={formatPercent(metrics.wape_percent)} />
         <Stat
-          label="MAE improvement"
-          value={formatPercent(validation?.mae_improvement_percent, 2)}
-          hint={validation ? 'Against the constant-mean baseline' : missingValidation}
-        />
+  label="MAE improvement"
+  featured
+  value={formatPercent(validation?.mae_improvement_percent, 2)}
+  hint={validation ? 'Against the constant-mean baseline' : missingValidation}
+/>
       </div>
 
       <ChartCard title="Model and baseline comparison" empty={comparison.length ? null : missingValidation}>
@@ -262,12 +423,22 @@ export default function AnalyticsView() {
 
       {validation?.peak_analysis ? (
         <section className="rounded-2xl border border-slate-700/80 bg-[#111c2e] p-4">
-          <h3 className="text-sm font-medium text-slate-100">Peak analysis</h3>
+         <h3 className="flex items-center gap-2 text-lg font-semibold text-white">
+  <Database className="size-5 text-teal-400" />
+  Peak-hour passenger demand
+</h3>
+
+<p className="mt-2 text-sm text-slate-400">
+  Average recorded passenger demand during historical
+  peak and off-peak periods.
+</p>
           <dl className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {Object.entries(validation.peak_analysis).map(([key, value]) => (
               <div key={key}>
                 <dt className="text-xs tracking-wide text-slate-400 uppercase">{titleFromKey(key)}</dt>
-                <dd className="mt-1 text-lg text-white">{formatDecimal(value, 2)}</dd>
+                <dd className="mt-1 text-lg text-white">{key === 'busiest_hour'
+  ? `${String(value).padStart(2, '0')}:00 IST`
+  : formatDecimal(value, 2)}</dd>
               </div>
             ))}
           </dl>

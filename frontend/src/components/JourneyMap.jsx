@@ -85,7 +85,7 @@ export default function JourneyMap({ journey }) {
     <section className="overflow-hidden rounded-2xl border border-slate-700/80 bg-[#111c2e]" aria-labelledby="map-title">
       <div className="flex flex-wrap items-end justify-between gap-3 px-4 py-3">
         <div>
-          <h3 id="map-title" className="text-base font-semibold text-white">Scheduled stop-based route map</h3>
+        <h3 id="map-title" className="text-lg font-semibold text-white">Interactive Journey Map</h3>
           <p className="mt-1 max-w-xl text-xs leading-5 text-slate-400">
             Lines connect scheduled GTFS stop coordinates. This is not a road-following path.
             {journey?.geometry_source ? ` Source: ${journey.geometry_source}.` : ''}
@@ -102,7 +102,7 @@ export default function JourneyMap({ journey }) {
           </ul>
         ) : null}
       </div>
-      <div className="h-[420px]">
+      <div className="relative isolate h-[380px] sm:h-[460px] xl:h-[560px]">
         <MapContainer
           center={DELHI}
           zoom={11}

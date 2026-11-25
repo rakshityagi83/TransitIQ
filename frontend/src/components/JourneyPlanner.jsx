@@ -119,7 +119,13 @@ export default function JourneyPlanner() {
       <section className="rounded-2xl border border-slate-700/80 bg-[#111c2e] p-4 shadow-[0_8px_24px_rgba(0,0,0,0.22)] sm:p-5">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h2 className="text-xl font-semibold text-white">Journey Planner</h2>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-teal-400">
+  Crowdedness-aware journey planning
+</p>
+
+<h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+  Plan a smarter journey.
+</h2>
             <p className="mt-1 text-sm text-slate-400">
               Compare scheduled Delhi bus options by travel time and relative crowdedness.
             </p>
@@ -140,7 +146,7 @@ export default function JourneyPlanner() {
         </div>
 
         <form
-          className="mt-5 space-y-4"
+          className="mt-7 space-y-5"
           onSubmit={(event) => {
             event.preventDefault()
             submitPlan()
@@ -169,7 +175,7 @@ export default function JourneyPlanner() {
             />
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid max-w-3xl gap-4 md:grid-cols-2">
             <div>
               <label htmlFor="departure-date" className="mb-1.5 block text-sm font-medium text-slate-200">
                 Departure date
@@ -201,7 +207,7 @@ export default function JourneyPlanner() {
             Date and time are sent as Asia/Kolkata (IST). Timings returned by the planner are scheduled, not live.
           </p>
 
-          <div>
+          <div className="max-w-3xl rounded-xl border border-slate-800 bg-[#0b1424] p-4">
             <div className="mb-2 flex items-center justify-between gap-3">
               <label htmlFor="comfort-weight" className="text-sm font-medium text-slate-200">
                 Comfort preference
@@ -220,7 +226,7 @@ export default function JourneyPlanner() {
               aria-valuenow={comfort}
               aria-valuetext={`${preferenceName(comfort)} ${comfort.toFixed(2)}`}
               onChange={(event) => setComfort(Number(event.target.value))}
-              className="w-full"
+              className="h-2 w-full cursor-pointer"
             />
             <div className="mt-1 grid grid-cols-3 text-xs text-slate-400">
               <span className={comfort <= 0.33 ? 'text-teal-300' : ''}>Speed</span>
@@ -238,7 +244,7 @@ export default function JourneyPlanner() {
           <button
             type="submit"
             disabled={loading}
-            className="inline-flex items-center gap-2 rounded-xl bg-[#14b8a6] px-4 py-2.5 text-sm font-semibold text-[#06221e] hover:bg-teal-400 disabled:opacity-60"
+           className="inline-flex w-full items-center justify-center gap-3 rounded-xl bg-teal-400 px-8 py-3.5 text-base font-bold text-[#042f2e] shadow-[0_4px_20px_rgba(20,184,166,0.18)] hover:bg-teal-300 disabled:opacity-60 sm:w-auto"
           >
             {loading ? <LoaderCircle aria-hidden="true" className="size-4 animate-spin" /> : <Search aria-hidden="true" className="size-4" />}
             {loading ? 'Finding journeys…' : 'Find Journeys'}
@@ -290,7 +296,7 @@ export default function JourneyPlanner() {
               {result.message || 'No journeys found for this departure.'}
             </div>
           ) : (
-            <div className="grid gap-5 xl:grid-cols-[minmax(0,24rem)_minmax(0,1fr)]">
+            <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,400px)_minmax(0,1fr)] xl:grid-cols-[minmax(0,440px)_minmax(0,1fr)]">
               <div className="space-y-3">
                 {journeys.map((journey) => (
                   <JourneyCard
@@ -301,10 +307,10 @@ export default function JourneyPlanner() {
                   />
                 ))}
               </div>
-              <div className="space-y-4">
-                <JourneyMap journey={selected} />
-                <JourneyDetail journey={selected} />
-              </div>
+              <div className="min-w-0 space-y-5">
+  <JourneyMap journey={selected} />
+  <JourneyDetail journey={selected} />
+</div>
             </div>
           )}
 
