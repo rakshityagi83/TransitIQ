@@ -1,8 +1,8 @@
-
 import {
   BusFront,
   Route,
   ChartNoAxesCombined,
+  BarChart3,
   Info,
   CircleAlert,
   Database,
@@ -14,6 +14,11 @@ const VIEWS = [
     id: 'planner',
     label: 'Journey Planner',
     icon: Route
+  },
+  {
+    id: 'explorer',
+    label: 'Crowdedness Explorer',
+    icon: BarChart3
   },
   {
     id: 'analytics',
