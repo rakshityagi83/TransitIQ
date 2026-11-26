@@ -1,4 +1,4 @@
-
+﻿
 # TransitIQ Frontend Integration Guide
 
 ## Technology Stack
@@ -255,6 +255,80 @@ activated, run:
 
 python -m pytest tests -v --tb=short
 
-Current verified result: 18 passed.
+Current verified development result: 30 passed.
 
 Processed datasets must exist before running integration tests.
+
+
+## 14. Smart Departure Advisor
+
+POST /api/journey/departure-advice
+
+Uses the same request structure as POST /api/journey/plan.
+
+Example request:
+
+```json
+{
+  "origin_stop_id": "1",
+  "destination_stop_id": "26",
+  "departure_time": "2026-11-26T08:00:00+05:30",
+  "comfort_weight": 0.8,
+  "limit": 5
+}
+```
+
+Important response fields:
+
+- status
+- requested_departure
+- comfort_weight
+- total_candidates
+- baseline
+- windows
+- alternatives
+- recommendation
+- message
+- metadata
+
+The recommendation may be null when no sufficiently supported
+and meaningfully less crowded later journey is available.
+
+Each recommended alternative includes:
+
+- departure_time
+- arrival_time
+- requested_departure
+- total_elapsed_minutes
+- additional_time_minutes
+- crowding_index
+- crowding_reduction_points
+- confidence
+
+The advisor compares up to five departure windows using a
+shared, bounded 120-minute journey candidate search.
+
+Multiple windows may identify the same scheduled bus.
+The alternatives list deduplicates scheduled journey IDs.
+
+Additional elapsed time includes the delay relative to the
+original requested departure.
+
+## 15. Route Crowdedness Explorer
+
+Search routes:
+
+GET /api/routes?query=102DOWN&limit=20
+
+Load weekday profile:
+
+GET /api/crowding/102DOWN/profile?day_type=weekday
+
+Load weekend profile:
+
+GET /api/crowding/102DOWN/profile?day_type=weekend
+
+Normalize missing hours to unknown values, not zero crowdedness.
+
+Recommended travel hours should use only medium-confidence
+or high-confidence historical predictions.

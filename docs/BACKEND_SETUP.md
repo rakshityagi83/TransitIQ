@@ -1,4 +1,4 @@
-
+﻿
 # TransitIQ — Backend Setup Guide
 
 ## 1. Prerequisites
@@ -87,7 +87,7 @@ python -m pytest tests -v --tb=short
 
 Verified development result:
 
-18 passed, 1 dependency deprecation warning.
+30 passed, 1 dependency deprecation warning.
 
 ## 8. Start the Backend
 
@@ -138,3 +138,4 @@ The backend does not require:
 - Map geometry connects scheduled bus stop coordinates.
 - Confidence labels represent historical data support.
 - Candidate searches are bounded for performance.
+
