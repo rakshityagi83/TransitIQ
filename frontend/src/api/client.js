@@ -83,3 +83,23 @@ export function getDepartureAdvice(payload, signal) {
     signal,
   })
 }
+
+export function searchRoutes(query, limit = 20, signal) {
+  const params = new URLSearchParams({
+    query,
+    limit: String(limit),
+  })
+
+  return request(`/api/routes?${params}`, { signal })
+}
+
+export function getCrowdingProfile(routeKey, dayType, signal) {
+  const params = new URLSearchParams({
+    day_type: dayType,
+  })
+
+  return request(
+    `/api/crowding/${encodeURIComponent(routeKey)}/profile?${params}`,
+    { signal }
+  )
+}

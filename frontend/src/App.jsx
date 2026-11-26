@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from 'react'
 import { BusFront } from 'lucide-react'
-
+import CrowdingExplorer from './components/CrowdingExplorer'
 import { getHealth } from './api/client'
 import Header from './components/Header'
 import JourneyPlanner from './components/JourneyPlanner'
@@ -72,9 +72,10 @@ export default function App() {
 
       <main className="mx-auto w-full max-w-[1600px] flex-1 px-4 py-8 sm:px-8">
 
-        {view === 'planner' && <JourneyPlanner />}
-        {view === 'analytics' && <AnalyticsView />}
-        {view === 'about' && <AboutView />}
+      {view === 'planner' && <JourneyPlanner />}
+      {view === 'explorer' && <CrowdingExplorer />}
+      {view === 'analytics' && <AnalyticsView />}
+      {view === 'about' && <AboutView />}
 
       </main>
 
