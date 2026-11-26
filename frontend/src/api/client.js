@@ -75,3 +75,11 @@ export function planJourney(payload, signal) {
 export function getAnalytics(signal) {
   return request('/api/analytics/summary', { signal })
 }
+
+export function getDepartureAdvice(payload, signal) {
+  return request('/api/journey/departure-advice', {
+    method: 'POST',
+    body: payload,
+    signal,
+  })
+}

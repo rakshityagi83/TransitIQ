@@ -28,7 +28,8 @@ def plan_journey(
     destination_stop_id,
     departure_time,
     comfort_weight=0.5,
-    limit=5
+    limit=5,
+    candidates_only=False
 ):
 
     comfort_weight = float(comfort_weight)
@@ -116,6 +117,8 @@ def plan_journey(
     candidates = (
         direct_journeys + transfer_journeys
     )
+    if candidates_only:
+        return candidates
 
     if not candidates:
 

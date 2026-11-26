@@ -13,7 +13,7 @@ from services.crowding_service import (
     get_hourly_profile
 )
 from services.journey_service import plan_journey
-
+from services.departure_advisor import advise_departure
 
 app = FastAPI(
     title="TransitIQ API",
@@ -233,7 +233,28 @@ def journey(request: JourneyRequest):
             detail=str(error)
         )
 
+@app.post("/api/journey/departure-advice")
+def departure_advice(request: JourneyRequest):
 
+    try:
+
+        return advise_departure(
+            origin_stop_id=request.origin_stop_id,
+            destination_stop_id=(
+                request.destination_stop_id
+            ),
+            departure_time=(
+                request.departure_time.isoformat()
+            ),
+            comfort_weight=request.comfort_weight
+        )
+
+    except ValueError as error:
+
+        raise HTTPException(
+            status_code=400,
+            detail=str(error)
+        )
 # Route crowdedness prediction
 
 @app.get("/api/crowding/{route_key}")
