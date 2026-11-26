@@ -1,0 +1,149 @@
+{
+    "training_period": "2026-10-01 to 2026-10-17",
+    "tuning_period": "2026-10-18 to 2026-10-24",
+    "final_training_period": "2026-10-01 to 2026-10-24",
+    "benchmark_period": "2026-10-25 to 2026-10-31",
+    "selected_alpha": 1,
+    "alpha_tuning_results": {
+        "1": 0.5706,
+        "2": 0.575,
+        "5": 0.5905,
+        "10": 0.6062,
+        "20": 0.6202
+    },
+    "selected_model": "M1_historical",
+    "tuning_results": {
+        "M0_constant": {
+            "profile": {
+                "mae": 1.5896,
+                "rmse": 3.7942,
+                "wape_percent": 98.85
+            },
+            "daily": {
+                "mae": 1.8534,
+                "rmse": 4.5809,
+                "wape_percent": 107.84
+            }
+        },
+        "M1_historical": {
+            "profile": {
+                "mae": 0.5692,
+                "rmse": 1.4761,
+                "wape_percent": 35.4
+            },
+            "daily": {
+                "mae": 0.952,
+                "rmse": 2.6647,
+                "wape_percent": 55.39
+            }
+        },
+        "M2_hierarchical": {
+            "profile": {
+                "mae": 0.5706,
+                "rmse": 1.4682,
+                "wape_percent": 35.48
+            },
+            "daily": {
+                "mae": 0.9551,
+                "rmse": 2.6535,
+                "wape_percent": 55.57
+            }
+        },
+        "M3_gradient_boosting": {
+            "profile": {
+                "mae": 0.6355,
+                "rmse": 1.8586,
+                "wape_percent": 39.51
+            },
+            "daily": {
+                "mae": 0.9889,
+                "rmse": 2.8811,
+                "wape_percent": 57.54
+            }
+        }
+    },
+    "final_results": {
+        "M0_constant": {
+            "profile": {
+                "mae": 1.7084,
+                "rmse": 4.387,
+                "wape_percent": 93.07
+            },
+            "daily": {
+                "mae": 1.9704,
+                "rmse": 5.1058,
+                "wape_percent": 100.35
+            }
+        },
+        "M1_historical": {
+            "profile": {
+                "mae": 0.5516,
+                "rmse": 1.4473,
+                "wape_percent": 30.05
+            },
+            "daily": {
+                "mae": 0.8867,
+                "rmse": 2.3902,
+                "wape_percent": 45.16
+            }
+        },
+        "M2_hierarchical": {
+            "profile": {
+                "mae": 0.548,
+                "rmse": 1.4236,
+                "wape_percent": 29.85
+            },
+            "daily": {
+                "mae": 0.8893,
+                "rmse": 2.3846,
+                "wape_percent": 45.29
+            }
+        },
+        "M3_gradient_boosting": {
+            "profile": {
+                "mae": 0.5928,
+                "rmse": 1.7212,
+                "wape_percent": 32.29
+            },
+            "daily": {
+                "mae": 0.9675,
+                "rmse": 2.935,
+                "wape_percent": 49.27
+            }
+        }
+    },
+    "common_observed_profile_results": {
+        "M0_constant": {
+            "mae": 3.0703,
+            "rmse": 6.4841,
+            "wape_percent": 62.73
+        },
+        "M1_historical": {
+            "mae": 1.3293,
+            "rmse": 2.3357,
+            "wape_percent": 27.16
+        },
+        "M2_hierarchical": {
+            "mae": 1.3035,
+            "rmse": 2.2941,
+            "wape_percent": 26.63
+        },
+        "M3_gradient_boosting": {
+            "mae": 1.4182,
+            "rmse": 2.7978,
+            "wape_percent": 28.98
+        }
+    },
+    "daily_evaluation_rows": 330288,
+    "common_evaluation_profiles": 35177,
+    "known_route_record_coverage_percent": 99.98,
+    "historical_profile_coverage_percent": 94.62,
+    "limitations": [
+        "Missing ticket observations represent zero recorded demand, not zero occupancy.",
+        "Evaluation is restricted to routes known during training.",
+        "October 25-31 was previously examined in the original model evaluation.",
+        "Scheduled frequency does not establish actual bus capacity or occupancy.",
+        "ETM data remains unavailable.",
+        "Benchmark does not overwrite the production model."
+    ]
+}

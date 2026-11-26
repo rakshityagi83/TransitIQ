@@ -13,6 +13,7 @@ import StopField from './StopField'
 import JourneyCard from './JourneyCard'
 import JourneyDetail from './JourneyDetail'
 import JourneyMap from './JourneyMap'
+import DepartureAdvisor from './DepartureAdvisor'
 
 const DEMOS = {
   direct: { originId: '1', destinationId: '26', label: 'Direct comparison' },
@@ -29,7 +30,8 @@ export default function JourneyPlanner() {
   const [error, setError] = useState('')
   const [result, setResult] = useState(null)
   const [selectedId, setSelectedId] = useState(null)
-
+  const [advisorPayload, setAdvisorPayload] = useState(null)
+  
   const journeys = Array.isArray(result?.journeys) ? result.journeys : []
   const selected = journeys.find((journey) => journey.trip_id === selectedId) || null
 
@@ -56,16 +58,21 @@ export default function JourneyPlanner() {
     setLoading(true)
     setError('')
     setResult(null)
+    setAdvisorPayload(null)
     setSelectedId(null)
 
     try {
-      const data = await planJourney({
+      const payload = {
         origin_stop_id: String(planOrigin.stop_id),
         destination_stop_id: String(planDestination.stop_id),
         departure_time: istDeparture(planDate, planTime),
         comfort_weight: Number(planComfort),
         limit: 5,
-      })
+      }
+      
+      const data = await planJourney(payload)
+      
+      setAdvisorPayload(payload)
       setResult(data)
       const first = Array.isArray(data?.journeys) ? data.journeys[0] : null
       setSelectedId(first?.trip_id ?? null)
@@ -252,6 +259,12 @@ export default function JourneyPlanner() {
         </form>
       </section>
 
+      {result?.status === 'success' && advisorPayload && (
+  <DepartureAdvisor
+    key={JSON.stringify(advisorPayload)}
+    payload={advisorPayload}
+  />
+)}
       {result ? (
         <section className="space-y-4" aria-live="polite">
           <div className="flex flex-wrap items-end justify-between gap-3">
