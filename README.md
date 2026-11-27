@@ -151,6 +151,58 @@ The reduction refers to the predicted relative index, not a measured reduction i
 
 ---
 
+
+## Application Preview
+
+### Journey Planner
+
+Search Delhi bus stops and customize your preference between speed and comfort.
+
+![Journey Planner](docs/screenshots/01-home-overview.png)
+
+### Crowdedness-Aware Journey Recommendations
+
+Compare scheduled journey times, relative crowdedness and historical confidence alongside interactive route maps.
+
+![Direct Journey](docs/screenshots/02-direct-journey.png)
+
+### Transfer Journey Planning
+
+Explore one-transfer journeys with individual route legs, interchange stops and scheduled waiting times.
+
+![Transfer Journey](docs/screenshots/03-transfer-journey.png)
+
+### Smart Departure Advisor
+
+Discover more comfortable departure alternatives. In this demonstrated journey, TransitIQ identifies a 47.2% lower relative crowdedness index in exchange for 24.4 additional minutes.
+
+![Smart Departure Advisor](docs/screenshots/04-departure-advisor.png)
+
+### Route Crowdedness Explorer
+
+Explore hourly crowdedness predictions and compare weekday and weekend patterns.
+
+![Crowdedness Explorer](docs/screenshots/05-crowding-explorer.png)
+
+### Network Analytics
+
+Explore real-world dataset statistics, historical demand patterns and model validation results.
+
+![Network Analytics](docs/screenshots/06-analytics-dashboard.png)
+
+---
+
+## Supporting Documentation
+
+- [Technical Note](docs/TECHNICAL_NOTE.md)
+- [Hackathon Proposal](docs/PROPOSAL.md)
+- [Backend Setup Guide](docs/BACKEND_SETUP.md)
+- [API Documentation](docs/API_GUIDE.md)
+- [Model Benchmark Results](docs/MODEL_BENCHMARK.json)
+
+---
+
+
 ## System Architecture
 
 ```mermaid
