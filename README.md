@@ -1,4 +1,4 @@
-
+﻿
 # TransitIQ
 
 ### Travel Smarter. Ride Comfortably.
@@ -14,7 +14,7 @@
 
 **Transport Stack Hackathon 2026 | Problem Statement 2**
 
-**Team SAG | IIIT Allahabad**
+**Team SAG**
 
 ---
 
@@ -673,8 +673,9 @@ AI-assisted development tools were used during implementation, debugging and doc
 
 ## Team SAG
 
-Indian Institute of Information Technology Allahabad
+
 
 Transport Stack Hackathon 2026
 
 **TransitIQ — Making public transport decisions more informed, comfortable and data-driven.**
+

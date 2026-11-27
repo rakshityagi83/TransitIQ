@@ -1,7 +1,7 @@
-# TransitIQ
+﻿# TransitIQ
 ## Crowdedness-Aware Intelligent Urban Mobility
 
-**Team SAG | IIIT Allahabad**
+**Team SAG**
 
 **Transport Stack Hackathon 2026 — Problem Statement 2**
 

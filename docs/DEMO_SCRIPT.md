@@ -1,4 +1,4 @@
-# TransitIQ — Demonstration Video Script
+﻿# TransitIQ — Demonstration Video Script
 
 Target duration: Approximately 3 minutes.
 
@@ -10,7 +10,7 @@ Target duration: Approximately 3 minutes.
 
 "Traditional journey planners tell us which bus gets us to our destination fastest. But what if a slightly longer journey could be significantly more comfortable?
 
-Introducing TransitIQ, a crowdedness-aware intelligent journey planner for Delhi's public bus network, developed by Team SAG from IIIT Allahabad."
+Introducing TransitIQ, a crowdedness-aware intelligent journey planner for Delhi's public bus network, developed by Team SAG."
 
 ## 00:20–00:40 | Data and technology
 
@@ -96,3 +96,5 @@ TransitIQ — Travel Smarter. Ride Comfortably."
 - Verify that all narration matches the displayed results.
 - Avoid claiming actual occupancy reduction or live tracking.
 - Export as MP4 within the submission portal's 100 MB limit.
+
+

@@ -1,8 +1,8 @@
-# TransitIQ — Technical Note
+﻿# TransitIQ — Technical Note
 
 **Transport Stack Hackathon 2026 | Problem Statement 2**
 
-**Team SAG — Indian Institute of Information Technology Allahabad**
+**Team SAG**
 
 ## 1. Abstract
 
